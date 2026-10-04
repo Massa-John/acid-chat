@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  acid-chat:
+    image: node:20-alpine
+    container_name: acid-chat-frontend
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
+      - VITE_WS_URL=${VITE_WS_URL:-ws://localhost:8080/ws}
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    restart: unless-stopped

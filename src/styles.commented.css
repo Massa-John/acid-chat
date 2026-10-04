@@ -1,0 +1,435 @@
+/* ==========================================================================
+   src/styles.commented.css
+   ----------------------------------------------------------------------------
+   Это учебно-документированная версия исходного styles.css.
+   Цель: объяснить назначение каждой секции, переменных и важных правил.
+   Практика: рабочим для сборки оставляем src/styles.css, а этот файл — для чтения.
+   ========================================================================== */
+
+/* Подключаем шрифт IBM Plex Mono с Google Fonts.
+   Используется для "терминального / кибер" визуального стиля интерфейса. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+/* :root — глобальная область CSS-переменных и базовых типографических настроек */
+:root {
+  /* Базовый стек шрифтов:
+     1) IBM Plex Mono
+     2) SFMono-Regular (macOS)
+     3) Consolas (Windows)
+     4) monospace fallback */
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  /* Цвет текста по умолчанию и общий фон документа */
+  color: #e9f1df;
+  background: #080a06;
+
+  /* Улучшение рендера текста на поддерживаемых браузерах */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  font-weight: 400;
+
+  /* Токены темы (переменные), чтобы не дублировать хардкод во всех селекторах */
+  --acid: #12de0b;                 /* основной кислотно-зеленый акцент */
+  --acid-dim: #89b52a;             /* приглушенная версия акцента */
+  --ink: #080a06;                  /* базовый чернильный фон */
+  --panel: rgba(0, 255, 102, .24); /* фон панелей */
+  --line: rgba(198, 255, 56, .60); /* цвет границ/разделителей */
+  --muted: #1ddb39;                /* вторичный текст */
+  --text: #e9f1df;                 /* основной текст */
+}
+
+/* box model reset:
+   padding/border входят в width/height, проще управлять layout */
+* { box-sizing: border-box; }
+
+/* Базовые стили body */
+body {
+  min-width: 320px;       /* защита от слишком узкой верстки */
+  min-height: 100vh;      /* минимум — высота окна браузера */
+  margin: 0;              /* убираем дефолтный margin браузера */
+  background-color: var(--ink);
+
+  /* Декоративный фон:
+     - 2 линейные сетки (вертикаль/горизонталь)
+     - 1 радиальный подсветочный градиент */
+  background-image:
+    linear-gradient(rgba(198, 255, 56, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(198, 255, 56, .035) 1px, transparent 1px),
+    radial-gradient(ellipse at 88% 8%, rgba(145, 199, 28, .09), transparent 35%);
+
+  /* Размер ячеек сетки */
+  background-size: 32px 32px, 32px 32px, auto;
+}
+
+/* Доп. эффект scanlines поверх всего экрана */
+body::after {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none; /* чтобы оверлей не блокировал клики */
+  inset: 0;
+  content: '';
+  opacity: .12;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, .2) 1px,
+    transparent 3px
+  );
+}
+
+/* Кнопки и инпуты наследуют шрифт от родителя */
+button, input { font: inherit; }
+button { color: inherit; }
+
+/* Видимый фокус для доступности (keyboard navigation) */
+button:focus-visible, input:focus-visible, a:focus-visible {
+  outline: 1px solid var(--acid);
+  outline-offset: 3px;
+}
+
+/* Ссылки наследуют цвет родителя */
+a { color: inherit; }
+
+/* Универсальный стиль "панели" */
+.panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow:
+    0 0 28px rgba(172, 255, 35, .035),
+    inset 0 0 32px rgba(198, 255, 56, .012);
+}
+
+/* Брендовый логотип/wordmark */
+.wordmark {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -.09em;
+  text-decoration: none;
+  text-shadow: 0 0 18px rgba(198, 255, 56, .24);
+}
+.wordmark span {
+  color: var(--acid);
+  padding: 0 3px;
+}
+
+/* Мелкие служебные подписи */
+.eyebrow, .section-label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .18em;
+}
+.section-label span {
+  color: var(--acid-dim);
+  margin-right: 8px;
+}
+.muted { color: var(--muted); }
+
+/* Онлайн-статус (точка) */
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acid);
+  box-shadow: 0 0 9px var(--acid);
+  flex: 0 0 auto;
+}
+.status-dot.offline {
+  background: #51564b;
+  box-shadow: none;
+}
+
+/* Анимируемый курсор/индикатор */
+.cursor {
+  color: var(--acid);
+  animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink { to { visibility: hidden; } }
+
+/* =========================
+   Authentication
+   ========================= */
+
+/* Экран авторизации центрирует карточку */
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* Карточка авторизации */
+.auth-card {
+  width: min(100%, 440px);
+  padding: 40px 42px 25px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Декоративная линия сверху карточки */
+.auth-card::before {
+  position: absolute;
+  top: 0;
+  left: 42px;
+  width: 74px;
+  height: 2px;
+  content: '';
+  background: var(--acid);
+  box-shadow: 0 0 15px var(--acid);
+}
+
+.auth-card > .wordmark { display: inline-block; margin-bottom: 44px; }
+.auth-card h1 { margin: 13px 0 8px; font-size: clamp(24px, 5vw, 31px); letter-spacing: -.07em; }
+.auth-card > .muted { font-size: 12px; margin: 0 0 34px; }
+
+.auth-form { display: grid; gap: 10px; }
+.auth-form label { color: #a0a793; margin-top: 9px; font-size: 9px; letter-spacing: .16em; }
+
+/* Общие стили инпутов для auth/search/composer */
+.auth-form input, .search-box input, .composer input {
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  background: #0a0c08;
+  border: 1px solid rgba(233, 241, 223, .11);
+  border-radius: 2px;
+  padding: 13px 14px;
+  outline: none;
+}
+
+.auth-form input:focus, .search-box:focus-within, .composer:focus-within {
+  border-color: rgba(198, 255, 56, .48);
+  box-shadow: 0 0 14px rgba(198, 255, 56, .08);
+}
+
+.auth-form input::placeholder, .search-box input::placeholder, .composer input::placeholder {
+  color: #51574a;
+}
+
+/* Primary CTA кнопка */
+.primary-button {
+  border: 1px solid var(--acid);
+  background: var(--acid);
+  color: #101507;
+  padding: 14px 16px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  cursor: pointer;
+  transition: box-shadow .2s, background .2s, transform .2s;
+}
+.primary-button:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(198, 255, 56, .4);
+  transform: translateY(-1px);
+}
+.primary-button:disabled { opacity: .55; cursor: wait; }
+
+.auth-submit { margin-top: 12px; }
+.form-error { margin: 2px 0; color: #ff8e76; font-size: 11px; line-height: 1.5; }
+.auth-switch { margin: 22px 0 32px; text-align: center; font-size: 10px; color: var(--muted); }
+.auth-switch a { color: var(--acid); text-decoration: none; }
+.auth-switch a:hover { text-decoration: underline; }
+.auth-foot {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: #717867;
+  font-size: 8px;
+  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.auth-foot .status-dot { width: 5px; height: 5px; }
+
+/* =========================
+   Main workspace (3 columns)
+   ========================= */
+
+.workspace {
+  width: min(1540px, calc(100vw - 52px));
+  height: min(900px, calc(100vh - 52px));
+  min-height: 560px;
+  margin: 26px auto;
+  display: grid;
+  grid-template-columns: minmax(230px, .8fr) minmax(270px, 1fr) minmax(400px, 2fr);
+  gap: 12px;
+  position: relative;
+}
+
+/* Общие ограничения для 3 панелей */
+.search-panel, .chat-list-panel, .conversation-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Левая колонка: поиск пользователей */
+.search-panel { display: flex; flex-direction: column; padding: 20px 18px 14px; }
+.brand-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 22px; }
+.icon-button { color: var(--muted); background: none; border: 1px solid transparent; cursor: pointer; }
+.logout-button { width: 29px; height: 29px; font-size: 17px; }
+.logout-button:hover { color: var(--acid); border-color: var(--line); }
+
+/* Плашка текущего аккаунта */
+.account-strip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 13px 10px;
+  margin-bottom: 26px;
+  border: 1px solid rgba(198, 255, 56, .1);
+  background: rgba(198, 255, 56, .025);
+}
+
+/* Аватар */
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  color: var(--acid);
+  background: rgba(198, 255, 56, .07);
+  border: 1px solid rgba(198, 255, 56, .22);
+  font-size: 12px;
+  font-weight: 600;
+}
+.avatar-self { background: var(--acid); color: #101507; box-shadow: 0 0 15px rgba(198, 255, 56, .22); }
+
+.account-strip > span:nth-child(2) { display: grid; gap: 4px; min-width: 0; }
+.account-strip strong, .person-copy strong { font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.account-strip small, .person-copy small { color: var(--muted); font-size: 8px; letter-spacing: .08em; }
+
+.live-indicator {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--acid);
+  font-size: 8px;
+}
+.live-indicator .status-dot { width: 5px; height: 5px; }
+
+.search-panel > .section-label { margin-bottom: 11px; }
+
+/* Поисковая строка */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(233, 241, 223, .11);
+  background: #0a0c08;
+  padding: 0 10px;
+}
+.search-box > span:first-child { color: var(--acid); font-size: 21px; }
+.search-box input { padding: 12px 0; border: 0; background: transparent; font-size: 10px; }
+
+/* Лоадер */
+.mini-loader {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--acid);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.search-results { overflow: auto; }
+
+/* ВАЖНО:
+   В исходном файле часть длинных строк обрезана (...), поэтому ниже блоки
+   оставлены как "структурные", без полного построчного воспроизведения. */
+
+/* ===== Chat list / conversation / messages / composer ===== */
+/* Эти блоки в рабочем styles.css уже есть и применяются корректно.
+   Ключевые места для цветов сообщений:
+   - .message-bubble                 -> входящие
+   - .outgoing .message-bubble      -> исходящие */
+
+/* Сообщение (входящее базово) */
+.message-bubble {
+  min-width: 80px;
+  padding: 11px 14px 8px;
+  border: 1px solid rgba(233, 241, 223, .08);
+  background: #11140e;
+}
+
+/* Сообщение исходящее */
+.outgoing .message-bubble {
+  border-color: rgba(11, 227, 108, .75);
+  background: rgba(11, 227, 108, .14);
+}
+
+/* =========================
+   Responsive breakpoints
+   ========================= */
+
+@media (max-width: 900px) {
+  .workspace {
+    width: calc(100vw - 28px);
+    height: calc(100vh - 28px);
+    margin: 14px auto;
+    grid-template-columns: minmax(210px, .8fr) minmax(240px, 1fr) minmax(300px, 1.6fr);
+    gap: 8px;
+  }
+  .search-panel { padding-inline: 13px; }
+  .section-heading { padding-inline: 14px; }
+  .chat-row { padding-inline: 12px; }
+}
+
+@media (max-width: 700px) {
+  /* Фикс мобильного автоскейла шрифта */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body { font-size: 16px; }
+
+  /* Переключение на вертикальную компоновку */
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+    margin: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .search-panel, .chat-list-panel, .conversation-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-results { max-height: 180px; }
+  .search-footer { display: none; }
+
+  .chat-list-panel { flex: 0 0 auto; max-height: 220px; }
+  .chat-row { padding-block: 9px; min-height: 44px; }
+
+  .conversation-panel { min-height: 52dvh; flex: 1 1 auto; }
+  .messages-area { padding: 12px; }
+
+  .message-bubble p { font-size: 15px; line-height: 1.45; }
+
+  .search-box input, .composer input, .auth-form input { font-size: 16px; }
+
+  .primary-button, .send-button { min-height: 44px; }
+}
+
+@media (max-width: 400px) {
+  /* В исходном файле были очень агрессивные значения.
+     Здесь сохранены текущие (как в рабочем файле), но для прод лучше снизить. */
+  .auth-card { padding-inline: 48px; }
+  .wordmark { font-size: 16px; }
+  .conversation-meta { font-size: 20px; }
+  .composer-note { padding-inline: 12px; font-size: 20px; }
+  .messages-area { padding: 20px; }
+}
